@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>可愛抽籤應用</title>
+    <style>
+        :root {
+            --bg-color: #f0f9e8;
+            --text-color: #2c6e49;
+            --accent-color: #4c956c;
+            --secondary-color: #a7e9af;
+            --highlight-color: #d8f3dc;
+            --shadow-color: rgba(76, 149, 108, 0.3);
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #1e352f;
+            --text-color: #a7e9af;
+            --accent-color: #4c956c;
+            --secondary-color: #2c6e49;
+            --highlight-color: #274233;
+            --shadow-color: rgba(167, 233, 175, 0.2);
+        }
+
+        * {
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', 'Yuanti SC', 'Yuanti TC', 'Yuanti', 'Apple LiGothic', 'Microsoft JhengHei', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            background-color: var(--highlight-color);
+            border-radius: 24px;
+            padding: 30px;
+            box-shadow: 0 10px 25px var(--shadow-color);
+            text-align: center;
+            position: relative;
+        }
+
+        h1 {
+            color: var(--accent-color);
+            font-size: 2.2rem;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px var(--shadow-color);
+        }
+
+        .theme-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--accent-color);
+            outline: none;
+        }
+
+        .input-container {
+            margin-bottom: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        textarea {
+            width: 100%;
+            height: 120px;
+            padding: 15px;
+            border: 3px dashed var(--secondary-color);
+            border-radius: 15px;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-size: 1rem;
+            resize: none;
+            margin-bottom: 15px;
+            font-family: inherit;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 10px var(--shadow-color);
+        }
+
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .checkbox-container input {
+            margin-right: 10px;
+            accent-color: var(--accent-color);
+        }
+
+        button {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            margin: 10px 0;
+            font-weight: bold;
+            box-shadow: 0 5px 15px var(--shadow-color);
+            font-family: inherit;
+        }
+
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px var(--shadow-color);
+        }
+
+        button:active {
+            transform: translateY(1px);
+            box-shadow: 0 3px 10px var(--shadow-color);
+        }
+
+        .shake {
+            animation: shake 0.5s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-10px); }
+            40%, 80% { transform: translateX(10px); }
+        }
+
+        .drawing-box {
+            position: relative;
+            width: 100%;
+            height: 200px;
+            background-color: var(--bg-color);
+            border-radius: 15px;
+            margin: 20px 0;
+            border: 3px solid var(--secondary-color);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .sticks-container {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        .stick {
+            width: 10px;
+            height: 150px;
+            background-color: var(--secondary-color);
+            margin: 0 10px;
+            border-radius: 5px;
+            border-bottom: 0;
+            position: relative;
+            transform-origin: bottom center;
+            transition: transform 0.3s ease;
+        }
+
+        .result {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin: 20px 0;
+            color: var(--accent-color);
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .result.highlight {
+            animation: pop 0.5s ease;
+        }
+
+        @keyframes pop {
+            0% { transform: scale(0.8); opacity: 0; }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .cute-icon {
+            font-size: 1.2rem;
+            margin: 0 5px;
+        }
+
+        .history {
+            margin-top: 20px;
+            width: 100%;
+            text-align: left;
+        }
+
+        .history h3 {
+            color: var(--accent-color);
+            margin-bottom: 10px;
+            border-bottom: 2px dotted var(--secondary-color);
+            padding-bottom: 5px;
+        }
+
+        .history-item {
+            padding: 8px;
+            margin: 5px 0;
+            border-radius: 8px;
+            background-color: var(--bg-color);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .reset-btn {
+            background-color: var(--secondary-color);
+            padding: 10px 20px;
+            font-size: 1rem;
+        }
+
+        .leaves {
+            position: absolute;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .leaf {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background-color: var(--secondary-color);
+            border-radius: 50% 0 50% 50%;
+            opacity: 0.5;
+            transform: rotate(45deg);
+        }
+
+        .leaf:nth-child(1) {
+            top: -15px;
+            left: 10%;
+            transform: rotate(125deg);
+        }
+
+        .leaf:nth-child(2) {
+            bottom: 20px;
+            right: 15%;
+            transform: rotate(45deg);
+        }
+
+        .leaf:nth-child(3) {
+            top: 30%;
+            left: -15px;
+            transform: rotate(195deg);
+        }
+
+        .leaf:nth-child(4) {
+            top: 40%;
+            right: -15px;
+            transform: rotate(305deg);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <button class="theme-toggle" id="themeToggle">🌓</button>
+        <h1>✨ 可愛抽籤 ✨</h1>
+
+        <div class="leaves">
+            <div class="leaf"></div>
+            <div class="leaf"></div>
+            <div class="leaf"></div>
+            <div class="leaf"></div>
+        </div>
+
+        <div class="input-container">
+            <textarea id="optionsInput" placeholder="請輸入選項，每行一個...
+例如：
+吃拉麵
+吃牛肉麵
+吃義大利麵
+吃泡麵"></textarea>
+            <div class="checkbox-container">
+                <input type="checkbox" id="animationToggle" checked>
+                <label for="animationToggle">顯示抽籤動畫</label>
+            </div>
+        </div>
+
+        <button id="drawBtn">抽籤！</button>
+
+        <div class="drawing-box" id="drawingBox">
+            <div class="sticks-container" id="sticksContainer"></div>
+        </div>
+
+        <div class="result" id="result">
+            <span>準備好了嗎？ 💫</span>
+        </div>
+
+        <button class="reset-btn" id="resetBtn">重置</button>
+
+        <div class="history" id="history">
+            <h3>🍀 抽籤歷史</h3>
+            <div id="historyItems"></div>
+        </div>
+    </div>
+
+    <script>
+        // 主題切換
+        const themeToggle = document.getElementById('themeToggle');
+        const body = document.body;
+        let isDarkMode = false;
+
+        themeToggle.addEventListener('click', () => {
+            isDarkMode = !isDarkMode;
+            body.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
+            themeToggle.textContent = isDarkMode ? '🌞' : '🌓';
+        });
+
+        // 抽籤功能
+        const optionsInput = document.getElementById('optionsInput');
+        const drawBtn = document.getElementById('drawBtn');
+        const result = document.getElementById('result');
+        const resetBtn = document.getElementById('resetBtn');
+        const historyItems = document.getElementById('historyItems');
+        const animationToggle = document.getElementById('animationToggle');
+        const drawingBox = document.getElementById('drawingBox');
+        const sticksContainer = document.getElementById('sticksContainer');
+
+        let drawHistory = [];
+        let options = [];
+        let isDrawing = false;
+
+        // 初始化抽籤棒
+        function initSticks() {
+            sticksContainer.innerHTML = '';
+            const stickCount = Math.min(10, Math.max(3, options.length));
+            
+            for (let i = 0; i < stickCount; i++) {
+                const stick = document.createElement('div');
+                stick.className = 'stick';
+                stick.style.height = `${100 + Math.random() * 50}px`;
+                sticksContainer.appendChild(stick);
+            }
+        }
+
+        // 抽籤動畫
+        function drawAnimation() {
+            const sticks = document.querySelectorAll('.stick');
+            let timeout = 0;
+            
+            sticks.forEach((stick, index) => {
+                setTimeout(() => {
+                    stick.style.transform = `translateY(${-Math.random() * 20}px) rotate(${(Math.random() - 0.5) * 10}deg)`;
+                }, timeout);
+                timeout += 100;
+            });
+
+            drawingBox.classList.add('shake');
+            setTimeout(() => {
+                drawingBox.classList.remove('shake');
+            }, 500);
+        }
+
+        // 抽籤邏輯
+        function draw() {
+            if (isDrawing) return;
+            
+            options = optionsInput.value
+                .split('\n')
+                .map(option => option.trim())
+                .filter(option => option !== '');
+
+            if (options.length < 2) {
+                alert('請至少輸入兩個選項！');
+                return;
+            }
+
+            isDrawing = true;
+            result.innerHTML = '<span>抽籤中...</span>';
+            result.classList.remove('highlight');
+
+            // 初始化並顯示抽籤棒
+            initSticks();
+
+            if (animationToggle.checked) {
+                // 運行抽籤動畫
+                drawAnimation();
+                
+                setTimeout(() => {
+                    finishDraw();
+                }, 1500);
+            } else {
+                finishDraw();
+            }
+        }
+
+        function finishDraw() {
+            const selectedIndex = Math.floor(Math.random() * options.length);
+            const selectedOption = options[selectedIndex];
+            
+            // 添加可愛的表情符號
+            const emojis = ['✨', '🍀', '🌟', '🎊', '🎉', '💫', '🌈', '🌸', '🌷'];
+            const randomEmoji = () => emojis[Math.floor(Math.random() * emojis.length)];
+            
+            result.innerHTML = `<span>${randomEmoji()} ${selectedOption} ${randomEmoji()}</span>`;
+            result.classList.add('highlight');
+            
+            // 記錄歷史
+            const now = new Date();
+            const timestamp = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+            
+            drawHistory.unshift({
+                result: selectedOption,
+                time: timestamp
+            });
+            
+            // 最多保留10條歷史記錄
+            if (drawHistory.length > 10) {
+                drawHistory.pop();
+            }
+            
+            updateHistory();
+            isDrawing = false;
+        }
+
+        // 更新歷史記錄
+        function updateHistory() {
+            historyItems.innerHTML = '';
+            
+            drawHistory.forEach(item => {
+                const historyItem = document.createElement('div');
+                historyItem.className = 'history-item';
+                historyItem.innerHTML = `
+                    <span>${item.result}</span>
+                    <span>${item.time}</span>
+                `;
+                historyItems.appendChild(historyItem);
+            });
+        }
+
+        // 重置功能
+        function reset() {
+            optionsInput.value = '';
+            result.innerHTML = '<span>準備好了嗎？ 💫</span>';
+            result.classList.remove('highlight');
+            drawHistory = [];
+            updateHistory();
+            sticksContainer.innerHTML = '';
+        }
+
+        // 綁定事件
+        drawBtn.addEventListener('click', draw);
+        resetBtn.addEventListener('click', reset);
+
+        // 初始化
+        initSticks();
+    </script>
+</body>
+</html>
